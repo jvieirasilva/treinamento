@@ -50,7 +50,7 @@ jobs:
       - name: Análise SonarCloud
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn sonar:sonar -Dsonar.token=${{ secrets.SONAR_TOKEN }}
+        run: mvn sonar:sonar -Dsonar.projectKey=jvieirasilva_treinamento -Dsonar.organization=jvieirasilva -Dsonar.token=${{ secrets.SONAR_TOKEN }}
 
       - name: Upload JAR como artefacto
         uses: actions/upload-artifact@v4
