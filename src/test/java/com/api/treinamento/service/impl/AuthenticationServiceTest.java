@@ -1,12 +1,18 @@
 package com.api.treinamento.service.impl;
 
-import com.api.treinamento.dto.RegisterRequest;
-import com.api.treinamento.dto.UserDTO;
-import com.api.treinamento.entity.Role;
-import com.api.treinamento.entity.User;
-import com.api.treinamento.repository.UserRepository;
-import com.api.treinamento.request.AuthenticationRequest;
-import com.api.treinamento.response.AuthenticationResponse;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.io.IOException;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,13 +24,15 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.io.IOException;
-import java.util.Date;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import com.api.treinamento.dto.RegisterRequest;
+import com.api.treinamento.dto.UserDTO;
+import com.api.treinamento.entity.Role;
+import com.api.treinamento.entity.User;
+import com.api.treinamento.repository.UserRepository;
+import com.api.treinamento.request.AuthenticationRequest;
+import com.api.treinamento.response.AuthenticationResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("AuthenticationService - Testes Unitários")
@@ -259,4 +267,85 @@ class AuthenticationServiceTest {
 
         verify(repository).save(any(User.class));
     }
+    
+    
+ // ─── updateUser ───────────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("updateUser: deve atualizar utilizador com sucesso")
+    void updateUser_sucesso() throws IOException {
+        RegisterRequest req = new RegisterRequest();
+        req.setFullName("João Atualizado");
+        req.setEmail("joao@teste.com");
+        req.setPassword("novaSenha");
+        req.setRole("ADMIN");
+        req.setIsActive(true);
+        req.setIsNotLocked(true);
+        req.setIsChangePassword(false);
+
+        when(repository.findById(1L)).thenReturn(Optional.of(user));
+        when(repository.findByEmail("joao@teste.com")).thenReturn(Optional.of(user));
+        when(repository.save(any(User.class))).thenReturn(user);
+
+        UserDTO dto = service.updateUser(1L, req);
+
+        assertThat(dto).isNotNull();
+        verify(repository).save(any(User.class));
+    }
+
+    @Test
+    @DisplayName("updateUser: deve lançar exceção quando utilizador não encontrado")
+    void updateUser_naoEncontrado_lancaExcecao() {
+        RegisterRequest req = new RegisterRequest();
+        when(repository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> service.updateUser(99L, req))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Usuário não encontrado com ID: 99");
+    }
+
+    @Test
+    @DisplayName("updateUser: deve lançar exceção quando email já em uso por outro utilizador")
+    void updateUser_emailEmUso_lancaExcecao() {
+        RegisterRequest req = new RegisterRequest();
+        req.setEmail("outro@teste.com");
+
+        User outroUser = User.builder().id(2L).email("outro@teste.com").role(Role.USER).joinDate(new Date()).build();
+        when(repository.findById(1L)).thenReturn(Optional.of(user));
+        when(repository.findByEmail("outro@teste.com")).thenReturn(Optional.of(outroUser));
+
+        assertThatThrownBy(() -> service.updateUser(1L, req))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Email já está em uso por outro usuário");
+    }
+
+    // ─── searchUsersByName ────────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("searchUsersByName: deve retornar página de utilizadores")
+    void searchUsersByName_sucesso() {
+        Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 10);
+        org.springframework.data.domain.Page<User> page = new org.springframework.data.domain.PageImpl<>(List.of(user));
+        when(repository.searchByNameOrEmail("João", pageable)).thenReturn(page);
+
+        org.springframework.data.domain.Page<UserDTO> resultado = service.searchUsersByName("João", pageable);
+
+        assertThat(resultado).isNotNull();
+        assertThat(resultado.getContent()).hasSize(1);
+        assertThat(resultado.getContent().get(0).getEmail()).isEqualTo("joao@teste.com");
+    }
+
+    @Test
+    @DisplayName("searchUsersByName: deve retornar página vazia quando não há resultados")
+    void searchUsersByName_semResultados() {
+        Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 10);
+        when(repository.searchByNameOrEmail("inexistente", pageable))
+                .thenReturn(org.springframework.data.domain.Page.empty());
+
+        org.springframework.data.domain.Page<UserDTO> resultado = service.searchUsersByName("inexistente", pageable);
+
+        assertThat(resultado).isNotNull();
+        assertThat(resultado.getContent()).isEmpty();
+    }
+    
 }

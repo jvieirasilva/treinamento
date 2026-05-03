@@ -31,6 +31,27 @@
 		<java.version>21</java.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+		<!-- SonarCloud -->
+		<sonar.projectKey>jvieirasilva_treinamento</sonar.projectKey>
+		<sonar.projectName>treinamento</sonar.projectName>
+		<sonar.organization>jvieirasilva</sonar.organization>
+		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
+		<sonar.language>java</sonar.language>
+		<sonar.java.source>21</sonar.java.source>
+		<sonar.coverage.jacoco.xmlReportPaths>
+			${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+		<sonar.exclusions>
+			**/config/**,
+			**/dto/**,
+			**/request/**,
+			**/response/**,
+			**/entity/Role.java,
+			**/entity/User.java,
+			**/security/**,
+			**/repository/**,
+			**/*Application.java
+		</sonar.exclusions>
 	</properties>
 	<dependencyManagement>
 		<dependencies>
@@ -212,19 +233,39 @@
 					</excludes>
 				</configuration>
 			</plugin>
+			<!-- ✅ SonarQube — análise de qualidade -->
+			<plugin>
+				<groupId>org.sonarsource.scanner.maven</groupId>
+				<artifactId>sonar-maven-plugin</artifactId>
+				<version>4.0.0.4121</version>
+			</plugin>
+
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
 				<version>0.8.12</version>
+				<configuration>
+
+					<excludes>
+						<exclude>com/api/treinamento/config/**</exclude>
+						<exclude>com/api/treinamento/dto/**</exclude>
+						<exclude>com/api/treinamento/request/**</exclude>
+						<exclude>com/api/treinamento/response/**</exclude>
+						<exclude>com/api/treinamento/entity/**</exclude>
+						<exclude>com/api/treinamento/security/**</exclude>
+						<exclude>com/api/treinamento/repository/**</exclude>
+						<exclude>com/api/treinamento/controller/**</exclude>
+						<exclude>
+							com/api/treinamento/TreinamentoApplication.class</exclude>
+					</excludes>
+				</configuration>
 				<executions>
-					<!-- Instrumenta os testes -->
 					<execution>
 						<id>prepare-agent</id>
 						<goals>
 							<goal>prepare-agent</goal>
 						</goals>
 					</execution>
-					<!-- Gera relatório HTML + XML depois dos testes -->
 					<execution>
 						<id>report</id>
 						<phase>test</phase>
@@ -232,7 +273,6 @@
 							<goal>report</goal>
 						</goals>
 					</execution>
-					<!-- Falha o build se cobertura < mínimo definido -->
 					<execution>
 						<id>check</id>
 						<goals>
@@ -243,7 +283,6 @@
 								<rule>
 									<element>BUNDLE</element>
 									<limits>
-										<!-- mínimo 60% de cobertura de linhas -->
 										<limit>
 											<counter>LINE</counter>
 											<value>COVEREDRATIO</value>
@@ -255,12 +294,6 @@
 						</configuration>
 					</execution>
 				</executions>
-			</plugin>
-			<!-- ✅ SonarQube — análise de qualidade -->
-			<plugin>
-				<groupId>org.sonarsource.scanner.maven</groupId>
-				<artifactId>sonar-maven-plugin</artifactId>
-				<version>4.0.0.4121</version>
 			</plugin>
 		</plugins>
 	</build>
