@@ -46,10 +46,10 @@ public class AuthenticationService {
 
     public AuthenticationResponse register(RegisterRequest request) throws IOException {
 
-        LOGGER.info("Jose id:" + request.getFullName());
+        LOGGER.info("Registando utilizador: {}", request.getFullName());
         // ✅ VERIFICAR SE EMAIL JÁ EXISTE
         if (repository.findByEmail(request.getEmail()).isPresent()) {
-            LOGGER.error("❌ Email já cadastrado: " + request.getEmail());
+        	LOGGER.error("Email já cadastrado: {}", request.getEmail());
             throw new RuntimeException("Este email já está cadastrado. Por favor, use outro email ou faça login.");
         }
         Role userRole = Role.USER; // default
@@ -57,7 +57,7 @@ public class AuthenticationService {
             try {
                 userRole = Role.valueOf(request.getRole().toUpperCase());
             } catch (IllegalArgumentException e) {
-                LOGGER.warn("Invalid role: " + request.getRole() + ". Using default USER role.");
+                LOGGER.warn("Invalid role: {}. Using default USER role.", request.getRole());
                 userRole = Role.USER;
             }
         }
@@ -329,15 +329,15 @@ public class AuthenticationService {
      * @param email Email do usuário
      * @return Token UUID gerado
      */
-    private String createEmailVerificationToken(String email,String token) {
-        LOGGER.info("Gerando token de verificação para: " + email);
+    private String createEmailVerificationToken(String email, String token) {
+        LOGGER.info("Gerando token de verificação para: {}", email);
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + TimeUnit.HOURS.toMillis(24));
         
-        LOGGER.info("✅ Token salvo no banco de dados");
-        LOGGER.info("   Token: " + token);
-        LOGGER.info("   Email: " + email);
-        LOGGER.info("   Expira em: " + expiryDate);
+        LOGGER.info("Token salvo no banco de dados");
+        LOGGER.info("Token: {}", token);
+        LOGGER.info("Email: {}", email);
+        LOGGER.info("Expira em: {}", expiryDate);
         
         return token;
     }
