@@ -1,0 +1,16 @@
+echo # Maven > .gitignore
+echo target/ >> .gitignore
+echo *.jar >> .gitignore
+echo *.war >> .gitignore
+echo # Credenciais >> .gitignore
+echo src/main/resources/application.properties >> .gitignore
+echo # Eclipse >> .gitignore
+echo .classpath >> .gitignore
+echo .project >> .gitignore
+echo .settings/ >> .gitignore
+echo # IDE >> .gitignore
+echo .idea/ >> .gitignore
+echo *.iml >> .gitignore
+echo # OS >> .gitignore
+echo .DS_Store >> .gitignore
+echo Thumbs.db >> .gitignore
