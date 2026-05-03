@@ -33,8 +33,9 @@ public class SwaggerConfig {
                                 .name("MIT License")
                                 .url("https://opensource.org/licenses/MIT")))
                 .servers(List.of(
-                        new Server().url("http://localhost:8080").description("Servidor local")
-                ))
+                	    new Server().url("http://3.223.254.231:8080").description("Servidor AWS EC2"),
+                	    new Server().url("http://localhost:8080").description("Servidor local")
+                	))
                 // 👇 Aplica o esquema globalmente (todos os endpoints terão o cadeado)
                 .addSecurityItem(new SecurityRequirement().addList(SECURITY_SCHEME_NAME))
                 // 👇 Define o esquema Bearer JWT
